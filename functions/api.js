@@ -3,6 +3,12 @@ const serverless = require('serverless-http');
 const app = express();
 const router = express.Router();
 
+const fetch = require('node-fetch');
+const cors = require('cors');
+
+app.use(cors());
+
+
 let records = [];
 
 //Get all students
@@ -44,6 +50,44 @@ router.get('/demo', (req, res) => {
       email: 'lily@gmail.com',
     },
   ]);
+});
+
+router.get('/live-projects', async (req, res) => {
+  try {
+    const username = 'maxvo_dev';
+    const MAX_ITEMS = 6; // Adjust if needed
+    const input = { '0': { json: { username } } };
+    const encodedInput = encodeURIComponent(JSON.stringify(input));
+
+    const url1 = `https://icodethis.com/api/trpc/user.getUserSubmissions,user.getUserBadges?batch=1&input=${encodedInput}`;
+    const response1 = await fetch(url1);
+    const data1 = await response1.json();
+
+    const projects = data1?.[0]?.result?.data?.json?.modes_submission?.slice(0, MAX_ITEMS) || [];
+
+    const result = await Promise.all(projects.map(async (project) => {
+      const { href, id, title, img_url, mode: { id: projectID } } = project;
+
+      const input2 = { '0': { json: { id: projectID } } };
+      const encodedInput2 = encodeURIComponent(JSON.stringify(input2));
+      const url2 = `https://icodethis.com/api/trpc/designToCode.getChallenge,designToCode.getSubmissionByChallengeId?batch=1&input=${encodedInput2}`;
+
+      const response2 = await fetch(url2);
+      const challengeData = await response2.json();
+      const challengeImg = challengeData[0]?.result?.data?.json?.meta?.image;
+      const defaultImg = `https://icodethis.com/images/projects/${challengeImg}`;
+      const imgSrc = img_url
+        ? `https://shismqklzntzxworibfn.supabase.co/storage/v1/object/public/previews/${img_url}`
+        : defaultImg;
+
+      return { href, id, title, imgSrc };
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error in server:', err);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
 });
 
 app.use('/.netlify/functions/api', router);
