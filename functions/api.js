@@ -2,8 +2,7 @@ const express = require('express');
 const serverless = require('serverless-http');
 const app = express();
 const router = express.Router();
-
-const fetch = require('node-fetch');
+const axios = require('axios');
 const cors = require('cors');
 
 app.use(cors());
@@ -55,13 +54,13 @@ router.get('/demo', (req, res) => {
 router.get('/live-projects', async (req, res) => {
   try {
     const username = 'maxvo_dev';
-    const MAX_ITEMS = 6; // Adjust if needed
+    const MAX_ITEMS = 6;
     const input = { '0': { json: { username } } };
     const encodedInput = encodeURIComponent(JSON.stringify(input));
 
     const url1 = `https://icodethis.com/api/trpc/user.getUserSubmissions,user.getUserBadges?batch=1&input=${encodedInput}`;
-    const response1 = await fetch(url1);
-    const data1 = await response1.json();
+    const response1 = await axios.get(url1);
+    const data1 = response1.data;
 
     const projects = data1?.[0]?.result?.data?.json?.modes_submission?.slice(0, MAX_ITEMS) || [];
 
@@ -72,8 +71,8 @@ router.get('/live-projects', async (req, res) => {
       const encodedInput2 = encodeURIComponent(JSON.stringify(input2));
       const url2 = `https://icodethis.com/api/trpc/designToCode.getChallenge,designToCode.getSubmissionByChallengeId?batch=1&input=${encodedInput2}`;
 
-      const response2 = await fetch(url2);
-      const challengeData = await response2.json();
+      const response2 = await axios.get(url2);
+      const challengeData = response2.data;
       const challengeImg = challengeData[0]?.result?.data?.json?.meta?.image;
       const defaultImg = `https://icodethis.com/images/projects/${challengeImg}`;
       const imgSrc = img_url
