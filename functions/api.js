@@ -55,7 +55,7 @@ router.get('/live-projects', async (req, res) => {
   try {
     const username = 'maxvo_dev';
     const MAX_ITEMS = 6;
-    const input = { '0': { json: { username } } };
+    const input = { '12': { json: { username } } };
     const encodedInput = encodeURIComponent(JSON.stringify(input));
 
     const url1 = `https://icodethis.com/api/trpc/user.getUserSubmissions,user.getUserBadges?batch=1&input=${encodedInput}`;
