@@ -30,27 +30,6 @@ router.put('/', (req, res) => {
   res.send('Updating existing record');
 });
 
-//showing demo records
-router.get('/demo', (req, res) => {
-  res.json([
-    {
-      id: '001',
-      name: 'Smith',
-      email: 'smith@gmail.com',
-    },
-    {
-      id: '002',
-      name: 'Sam',
-      email: 'sam@gmail.com',
-    },
-    {
-      id: '003',
-      name: 'lily',
-      email: 'lily@gmail.com',
-    },
-  ]);
-});
-
 router.get('/live-projects', async (req, res) => {
   try {
     const username = 'maxvo_dev';
@@ -66,18 +45,21 @@ router.get('/live-projects', async (req, res) => {
 
     const result = await Promise.all(projects.map(async (project) => {
       const { href, id, title, img_url, mode: { id: projectID } } = project;
+      let imgSrc;
 
-      const input2 = { '0': { json: { id: projectID } } };
-      const encodedInput2 = encodeURIComponent(JSON.stringify(input2));
-      const url2 = `https://icodethis.com/api/trpc/designToCode.getChallenge,designToCode.getSubmissionByChallengeId?batch=1&input=${encodedInput2}`;
+      if(!img_url){
+        const input2 = { '0': { json: { id: projectID } } };
+        const encodedInput2 = encodeURIComponent(JSON.stringify(input2));
+        const url2 = `https://icodethis.com/api/trpc/designToCode.getChallenge,designToCode.getSubmissionByChallengeId?batch=1&input=${encodedInput2}`;
 
-      const response2 = await axios.get(url2);
-      const challengeData = response2.data;
-      const challengeImg = challengeData[0]?.result?.data?.json?.meta?.image;
-      const defaultImg = `https://icodethis.com/images/projects/${challengeImg}`;
-      const imgSrc = img_url
-        ? `https://shismqklzntzxworibfn.supabase.co/storage/v1/object/public/previews/${img_url}`
-        : defaultImg;
+        const response2 = await axios.get(url2);
+        const challengeData = response2.data;
+        const challengeImg = challengeData[0]?.result?.data?.json?.meta?.image;
+        imgSrc = `https://icodethis.com/images/projects/${challengeImg}`;
+      }
+      else{
+        imgSrc = `https://shismqklzntzxworibfn.supabase.co/storage/v1/object/public/previews/${img_url}`;
+      }
 
       return { href, id, title, imgSrc };
     }));
